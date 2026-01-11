@@ -27,17 +27,30 @@ const isRectValid = (data: string[], pointA: Point, pointB: Point): boolean => {
   const minY = Math.min(pointA.y, pointB.y);
   const maxY = Math.max(pointA.y, pointB.y);
 
-  for (let y = minY; y < maxY; y++) {
-    for (let x = minX; x < maxX; x++) {
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
       if (data[y][x] === EMPTY) return false;
     }
   }
   return true;
 };
-
 const EMPTY = ".";
 const RED = "#";
 const GREEN = "X";
+const MARK = "O";
+
+const paintRect = (data: string[], pointA: Point, pointB: Point): void => {
+  const minX = Math.min(pointA.x, pointB.x);
+  const maxX = Math.max(pointA.x, pointB.x);
+  const minY = Math.min(pointA.y, pointB.y);
+  const maxY = Math.max(pointA.y, pointB.y);
+
+  for (let y = minY; y < maxY; y++) {
+    for (let x = minX; x < maxX; x++) {
+      data[y] = replaceChar(data[y], x, MARK);
+    }
+  }
+};
 
 function replaceChar(str: string, index: number, char: string) {
   // first, convert the string to an array
@@ -100,9 +113,6 @@ const main = () => {
   for (let lineIndex = 0; lineIndex < maxY + 2; lineIndex++) {
     data.push(emptyLine);
   }
-
-  console.log("data initialized");
-
   // Lay down carpet
   points.forEach((pointA, i) => {
     const pointB = points[i + 1] ?? points[0];
@@ -116,13 +126,6 @@ const main = () => {
       x: xValueToIndex.get(pointB.x) || 0,
       y: yValueToIndex.get(pointB.y) || 0,
     };
-
-    console.log(
-      "carpet processed ",
-      i + "/" + points.length,
-      translatedA,
-      translatedB
-    );
 
     const xDiff = translatedB.x - translatedA.x;
     const yDiff = translatedB.y - translatedA.y;
@@ -139,9 +142,13 @@ const main = () => {
 
   log(data);
 
-  const safePositionInside: Point = {
-    x: Math.floor(data[0].length / 2),
-    y: Math.floor(data.length / 2),
+  // const safePositionInside: Point = {
+  //   x: 2,
+  //   y:1,
+  // };
+   const safePositionInside: Point = {
+    x: 150,
+    y:200,
   };
 
   const flood = (position: Point): void => {
@@ -176,6 +183,12 @@ const main = () => {
 
   // get largest rect
   let largestArea = 0;
+  let largestTranslatedPointA;
+  let largestTranslatedPointB;
+  let largestPointA;
+  let largestPointB;
+  
+  
   points.forEach((pointA) => {
     points.forEach((pointB) => {
       const area = getArea(pointA, pointB);
@@ -192,13 +205,21 @@ const main = () => {
 
         if (isRectValid(data, translatedA, translatedB)) {
           largestArea = area;
+          largestTranslatedPointA = translatedA;
+          largestTranslatedPointB = translatedB;
+          largestPointA = pointA;
+          largestPointB= pointB;
         }
       }
     });
   });
 
-  log(data);
-  console.log(largestArea);
+  console.log(largestArea, largestTranslatedPointA, largestTranslatedPointB);
+  if (largestTranslatedPointA && largestTranslatedPointB) {
+    paintRect(data, largestTranslatedPointA, largestTranslatedPointB);
+  }
+   log(data);
+   console.log(largestArea, largestPointA, largestPointB)
 };
 
 main();
