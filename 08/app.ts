@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 
 const EXAMPLE_FILE_NAME = "example_input.txt";
-const LIMIT = 1000;
 function readFileContent(filename: string): string {
   return fs.readFileSync(path.resolve(__dirname, filename), "utf-8");
 }
@@ -31,10 +30,10 @@ const main = () => {
 
   const points = lines.map(parsePoint);
 
-  let distancesSet: Set<string> = new Set<string>;
+  let distancesSet: Set<string> = new Set<string>();
 
   points.forEach((pointA, i) => {
-    console.log("ai",i)
+    console.log("ai", i);
     points.forEach((pointB) => {
       if (pointA === pointB) return;
       const distance = getDistance(pointA, pointB);
@@ -46,7 +45,6 @@ const main = () => {
     });
   });
 
-  
   let distances = Array.from(distancesSet).sort((a: string, b: string) => {
     return Number(a.split("-")[0]) - Number(b.split("-")[0]);
   });
@@ -58,24 +56,28 @@ const main = () => {
 
   let additionCounter = 0;
   let connectionIndex = 0;
+  let lastConnectedPointA = null;
+  let lastConnectedPointB = null;
   while (true) {
+    console.log(connectionIndex, "/", distances.length);
     const connection = distances[connectionIndex];
     const [_, indexA, indexB] = connection.split("-").map(Number);
 
     const pAGroup = groupsByPoints[indexA];
     const pBGroup = groupsByPoints[indexB];
     if (pAGroup !== pBGroup) {
-    console.log("join: ",additionCounter, pBGroup, " to ", pAGroup);  
+      console.log("join: ", additionCounter, pBGroup, " to ", pAGroup);
       Object.keys(groupsByPoints).forEach((key) => {
         if (groupsByPoints[key] === pBGroup) {
           groupsByPoints[key] = pAGroup;
         }
       });
+      lastConnectedPointA = indexA;
+      lastConnectedPointB = indexB;
     }
-      additionCounter++;
+    additionCounter++;
     connectionIndex++;
     if (connectionIndex === distances.length) break;
-    if (additionCounter === LIMIT) break;
   }
 
   log(groupsByPoints);
@@ -86,14 +88,24 @@ const main = () => {
     const value = groupsByPoints[key];
     groupMembers[value] = groupMembers[value] ? groupMembers[value] + 1 : 1;
   });
-  log(groupMembers)
+  log(groupMembers);
 
-  const largestIndexes = Object.keys(groupMembers).sort((keyA, keyB) => groupMembers[keyB] - groupMembers[keyA]).slice(0,3)
-  const largestValues = largestIndexes.map(k => groupMembers[k]);
-  log(largestValues) 
-  const result = largestValues.reduce((acc,curr) => acc *curr,1)
-  log(result)
+  const largestIndexes = Object.keys(groupMembers)
+    .sort((keyA, keyB) => groupMembers[keyB] - groupMembers[keyA])
+    .slice(0, 3);
+  const largestValues = largestIndexes.map((k) => groupMembers[k]);
+  log(largestValues);
+  const result = largestValues.reduce((acc, curr) => acc * curr, 1);
+  log(result);
 
+  log(lastConnectedPointA);
+  log(lastConnectedPointB);
+
+  const pointA = points[lastConnectedPointA!];
+  const pointB = points[lastConnectedPointB!];
+  log(pointA);
+  log(pointB);
+  log(pointA.x * pointB.x);
 };
 
 main();
